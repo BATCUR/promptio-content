@@ -1,0 +1,1149 @@
+{
+  "name": "PROMPTIO — Publicacion automatica (render local + Postiz)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 9,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "trigger-diario-0900",
+      "name": "Trigger diario 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -460,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c0",
+              "name": "owner",
+              "value": "BATCUR",
+              "type": "string"
+            },
+            {
+              "id": "c1",
+              "name": "repo",
+              "value": "promptio-content",
+              "type": "string"
+            },
+            {
+              "id": "c2",
+              "name": "branch",
+              "value": "main",
+              "type": "string"
+            },
+            {
+              "id": "c3",
+              "name": "zonaHoraria",
+              "value": "Europe/Madrid",
+              "type": "string"
+            },
+            {
+              "id": "c4",
+              "name": "renderizadorUrl",
+              "value": "http://127.0.0.1:8099",
+              "type": "string"
+            },
+            {
+              "id": "c5",
+              "name": "renderizadorModo",
+              "value": "campos",
+              "type": "string"
+            },
+            {
+              "id": "c6",
+              "name": "postizUrl",
+              "value": "https://postiz.TU-DOMINIO.com",
+              "type": "string"
+            },
+            {
+              "id": "c7",
+              "name": "postizIntegrationId",
+              "value": "REEMPLAZAR_ID_INTEGRACION_INSTAGRAM",
+              "type": "string"
+            },
+            {
+              "id": "c8",
+              "name": "igUserId",
+              "value": "REEMPLAZAR_IG_USER_ID",
+              "type": "string"
+            },
+            {
+              "id": "c9",
+              "name": "metaVersion",
+              "value": "v21.0",
+              "type": "string"
+            },
+            {
+              "id": "c10",
+              "name": "telegramChatId",
+              "value": "REEMPLAZAR_CHAT_ID",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "configuracion",
+      "name": "Configuracion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "url": "=https://api.github.com/repos/{{ $('Configuracion').first().json.owner }}/{{ $('Configuracion').first().json.repo }}/contents/calendario.md",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ref",
+              "value": "={{ $('Configuracion').first().json.branch }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.raw"
+            }
+          ]
+        }
+      },
+      "id": "github-leer-calendario.md",
+      "name": "GitHub: leer calendario.md",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        300
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "REEMPLAZAR_GITHUB",
+          "name": "GitHub PROMPTIO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "url": "=https://api.github.com/repos/{{ $('Configuracion').first().json.owner }}/{{ $('Configuracion').first().json.repo }}/contents/log.md",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ref",
+              "value": "={{ $('Configuracion').first().json.branch }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "github-leer-log.md",
+      "name": "GitHub: leer log.md",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        500
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "REEMPLAZAR_GITHUB",
+          "name": "GitHub PROMPTIO"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "notes": "404 en la primera ejecución es esperado."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Post del calendario cuya fecha es hoy y que no está ya en log.md.\nconst cfg = $('Configuracion').first().json;\nconst md  = $('GitHub: leer calendario.md').first().json.data || '';\n\nlet logContenido = '', logSha = '';\ntry {\n  const log = $('GitHub: leer log.md').first().json;\n  if (log && log.content) {\n    logContenido = Buffer.from(log.content, 'base64').toString('utf8');\n    logSha = log.sha || '';\n  }\n} catch (e) { /* primera ejecución */ }\n\nconst hoy = DateTime.now().setZone(cfg.zonaHoraria).toFormat('yyyy-MM-dd');\nconst RE = /^- \\*\\*(.+?)\\*\\* · \\*(.+?)\\* · `([a-z0-9]+)` · `(\\d{4}-\\d{2}-\\d{2}) (\\d{2}:\\d{2})`/;\n\nconst posts = [];\nfor (const linea of md.split('\\n')) {\n  const m = linea.match(RE);\n  if (m) posts.push({ titulo: m[1], formato: m[2], id: m[3], fecha: m[4], hora: m[5] });\n}\nif (posts.length === 0) throw new Error('No se pudo parsear ningún post de calendario.md. ¿Cambió el formato?');\n\n// Solo la primera celda de filas de tabla reales. Buscar \"| id |\" suelto por\n// todo el texto da falsos positivos con la prosa del propio log.md, y un post\n// mencionado en un comentario no se publicaría jamás.\nconst idsEnLog = new Set(\n  logContenido.split('\\n')\n    .map(l => l.match(/^\\|\\s*([a-z0-9]+)\\s*\\|/))\n    .filter(Boolean)\n    .map(m => m[1])\n);\nconst yaHecho = (id) => idsEnLog.has(id);\nconst pendientes = posts.filter(p => p.fecha === hoy && !yaHecho(p.id));\nif (pendientes.length === 0) return [];\n\nconst p = pendientes[0];\nreturn [{ json: { ...p, semana: Number(p.id.match(/^s(\\d+)/)[1]), logSha, logContenido } }];"
+      },
+      "id": "seleccionar-post-de-hoy",
+      "name": "Seleccionar post de hoy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "url": "=https://api.github.com/repos/{{ $('Configuracion').first().json.owner }}/{{ $('Configuracion').first().json.repo }}/contents/guiones/semana-{{ $json.semana }}.md",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ref",
+              "value": "={{ $('Configuracion').first().json.branch }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.raw"
+            }
+          ]
+        }
+      },
+      "id": "github-leer-guion-de-la-semana",
+      "name": "GitHub: leer guion de la semana",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        400
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "REEMPLAZAR_GITHUB",
+          "name": "GitHub PROMPTIO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Saca del guion los campos de autofill, el caption y el comentario funcional.\nconst cfg  = $('Configuracion').first().json;\nconst post = $('Seleccionar post de hoy').first().json;\nconst md   = $('GitHub: leer guion de la semana').first().json.data || '';\n\nconst bloque = (md.split(/^## /m).slice(1).find(b => b.includes(post.id))) || '';\n\nfunction campo(nombre) {\n  // [ \\t]* y no \\s*: \\s* se come los saltos de línea de forma codiciosa y no\n  // los devuelve, así que un campo vacío capturaría la cabecera siguiente.\n  const re = new RegExp('\\\\*\\\\*' + nombre + ':\\\\*\\\\*[ \\\\t]*([\\\\s\\\\S]*?)(?=\\\\n\\\\s*\\\\*\\\\*[^*]+:\\\\*\\\\*|\\\\n---|$)');\n  const m = bloque.match(re);\n  const v = m ? m[1].trim() : '';\n  return /^\\*\\*[^*]+:\\*\\*$/.test(v) ? '' : v;\n}\n\nconst titulo     = campo('Título \\\\(autofill\\\\)');\nconst cita       = campo('Cita \\\\(autofill\\\\)');\nconst desarrollo = campo('Desarrollo \\\\(autofill\\\\)');\nconst caption    = campo('Caption');\nconst comentario = campo('Comentario funcional');\n\n// El renderizador local decide el troceado; aquí solo se comprueba que el\n// guion trae con qué trabajar.\nreturn [{ json: { ...post, titulo, cita, desarrollo, caption, comentario,\n                  modoRender: cfg.renderizadorModo || 'campos',\n                  guionEncontrado: bloque.length > 0 } }];"
+      },
+      "id": "extraer-datos-del-guion",
+      "name": "Extraer datos del guion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Puerta de entrada: sin estos datos no se arranca el pipeline.\nconst d = $input.first().json;\nconst faltantes = [];\n\nif (!d.guionEncontrado) faltantes.push('Bloque de guion con el id ' + d.id + ' en guiones/semana-' + d.semana + '.md');\nif (!d.titulo)          faltantes.push('Campo **Título (autofill):** en el guion');\nif (!d.cita)            faltantes.push('Campo **Cita (autofill):** en el guion');\nif (!d.desarrollo)      faltantes.push('Campo **Desarrollo (autofill):** en el guion');\nif (!d.caption)         faltantes.push('Campo **Caption:** en el guion');\nif (!d.comentario)      faltantes.push('Campo **Comentario funcional:** en el guion');\n\nreturn [{ json: { ...d, faltantes, listo: faltantes.length === 0 } }];"
+      },
+      "id": "verificar-datos-del-guion",
+      "name": "Verificar datos del guion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "listo",
+              "leftValue": "={{ $json.listo }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "datos-completos",
+      "name": "Datos completos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1080,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "url": "={{ $('Configuracion').first().json.renderizadorUrl }}/render",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ id: $json.id, modo: $json.modoRender }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "renderizador-generar-carrusel",
+      "name": "Renderizador: generar carrusel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR_RENDER",
+          "name": "Renderizador PROMPTIO"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "notes": "Chromium headless en el mismo VPS. Un carrusel tarda unos segundos; el timeout de 120 s cubre un arranque en frío."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// El renderizador responde 200 con las láminas, o 4xx con {error}. Con\n// onError=continueRegularOutput el nodo HTTP no corta la ejecución, así que\n// el fallo se traduce aquí a la rama de aviso.\nconst r = $input.first().json || {};\n\nif (r.error) {\n  return [{ json: { estado: 'error', etapa: 'render del carrusel', detalle: String(r.error) } }];\n}\n\nconst laminas = r.laminas || [];\nif (laminas.length < 2) {\n  return [{ json: { estado: 'error', etapa: 'render del carrusel',\n                    detalle: 'El renderizador devolvió ' + laminas.length + ' lámina(s). '\n                           + 'Un carrusel necesita al menos portada y cierre. Respuesta: '\n                           + JSON.stringify(r).slice(0, 400) } }];\n}\n\nconst ultima = laminas[laminas.length - 1];\nif (ultima.tipo !== 'cierre') {\n  return [{ json: { estado: 'error', etapa: 'render del carrusel',\n                    detalle: 'La última lámina es \"' + ultima.tipo + '\" y no el cierre de marca. '\n                           + 'No se publica un carrusel sin su lámina de cierre.' } }];\n}\n\nreturn [{ json: { estado: 'listo', urls: laminas.map(l => l.url), totalPaginas: laminas.length } }];"
+      },
+      "id": "evaluar-render",
+      "name": "Evaluar render",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "r0",
+                    "leftValue": "={{ $json.estado }}",
+                    "rightValue": "listo",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "listo"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "r1",
+                    "leftValue": "={{ $json.estado }}",
+                    "rightValue": "error",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "error"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "estado-render",
+      "name": "Estado render",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1740,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Una URL de lámina por item, para descargarlas y subirlas en orden.\nconst urls = $input.first().json.urls || [];\nreturn urls.map((url, i) => ({ json: { url, pagina: i + 1, total: urls.length } }));"
+      },
+      "id": "expandir-laminas",
+      "name": "Expandir laminas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1960,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "descargar-lamina",
+      "name": "Descargar lamina",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2180,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR_RENDER",
+          "name": "Renderizador PROMPTIO"
+        }
+      },
+      "notes": "Sirve el PNG del propio renderizador. Misma credencial X-Token."
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "url": "={{ $('Configuracion').first().json.postizUrl }}/public/v1/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "postiz-subir-lamina",
+      "name": "Postiz: subir lamina",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3940,
+        120
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR_POSTIZ",
+          "name": "Postiz API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Body de creación de post en Postiz. Publicación inmediata.\nconst cfg  = $('Configuracion').first().json;\nconst post = $('Verificar datos del guion').first().json;\n\nconst imagenes = $input.all().map(i => ({ id: i.json.id })).filter(x => x.id);\nif (imagenes.length === 0) throw new Error('Postiz no devolvió ids de imagen. Revisa el nodo de subida.');\n\nconst body = {\n  type: 'now',\n  date: DateTime.now().toUTC().toISO(),\n  shortLink: false,\n  tags: [],\n  posts: [{\n    integration: { id: cfg.postizIntegrationId },\n    value: [{ content: post.caption, image: imagenes }],\n    group: post.id,\n    settings: {}\n  }]\n};\nreturn [{ json: { body, post, totalImagenes: imagenes.length } }];"
+      },
+      "id": "construir-payload-de-postiz",
+      "name": "Construir payload de Postiz",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4160,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "url": "={{ $('Configuracion').first().json.postizUrl }}/public/v1/posts",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "postiz-publicar-post",
+      "name": "Postiz: publicar post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4380,
+        120
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR_POSTIZ",
+          "name": "Postiz API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 3,
+        "unit": "minutes"
+      },
+      "id": "esperar-publicacion-en-instagram",
+      "name": "Esperar publicacion en Instagram",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4600,
+        120
+      ],
+      "webhookId": "espera-publicacion",
+      "notes": "Postiz encola el envío; Instagram tarda en exponer el medio en el feed."
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "url": "=https://graph.facebook.com/{{ $('Configuracion').first().json.metaVersion }}/{{ $('Configuracion').first().json.igUserId }}/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,caption,timestamp,media_type"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "meta-leer-medios-recientes",
+      "name": "Meta: leer medios recientes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4820,
+        120
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR_META",
+          "name": "Meta Graph API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Postiz no devuelve el media id de Instagram, así que hay que localizarlo\n// en el feed: el post recién creado debe ser reciente y empezar igual que\n// el caption que acabamos de mandar.\nconst cfg   = $('Configuracion').first().json;\nconst prep  = $('Construir payload de Postiz').first().json;\nconst post  = prep.post;\n\nconst media = ($input.first().json.data) || [];\nconst normaliza = (s) => (s || '').replace(/\\s+/g, ' ').trim().toLowerCase();\nconst inicioCaption = normaliza(post.caption).slice(0, 60);\n\nconst limite = DateTime.now().minus({ minutes: 30 });\nconst candidato = media.find(m => {\n  const reciente = m.timestamp ? DateTime.fromISO(m.timestamp) > limite : false;\n  return reciente && normaliza(m.caption).startsWith(inicioCaption);\n});\n\nif (!candidato) {\n  return [{ json: { encontrado: false, post, totalImagenes: prep.totalImagenes,\n                    detalle: 'No se encontró en el feed de @promptio_ ningún medio reciente cuyo caption coincida. ' +\n                             'El post puede seguir en cola en Postiz.' } }];\n}\nreturn [{ json: { encontrado: true, mediaId: candidato.id, post, totalImagenes: prep.totalImagenes } }];"
+      },
+      "id": "emparejar-post-publicado",
+      "name": "Emparejar post publicado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5040,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "enc",
+              "leftValue": "={{ $json.encontrado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "comentario-localizable",
+      "name": "Comentario localizable?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5260,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Configuracion').first().json.metaVersion }}/{{ $json.mediaId }}/comments",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.post.comentario }) }}",
+        "options": {}
+      },
+      "id": "meta-publicar-comentario",
+      "name": "Meta: publicar comentario",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5480,
+        40
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REEMPLAZAR_META",
+          "name": "Meta Graph API"
+        }
+      },
+      "notes": "Requiere instagram_manage_comments sobre la cuenta de @promptio_."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Configuracion').first().json.telegramChatId }}",
+        "text": "=⚠️ *Post publicado, comentario NO añadido*\n\n*{{ $json.post.titulo }}* (`{{ $json.post.id }}`)\n\n{{ $json.detalle }}\n\n*Comentario que hay que pegar a mano:*\n{{ $json.post.comentario }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-publicado-sin-comentario",
+      "name": "Telegram: publicado sin comentario",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        5480,
+        260
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REEMPLAZAR_TELEGRAM",
+          "name": "Telegram PROMPTIO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Fila de log.md + body del commit.\nconst cfg = $('Configuracion').first().json;\nconst em  = $('Emparejar post publicado').first().json;\nconst sel = $('Seleccionar post de hoy').first().json;\nconst post = em.post;\n\n// Este nodo se alcanza por dos caminos: con comentario publicado o sin él.\nlet comentarioOk = false, mediaId = em.mediaId || '—';\ntry {\n  const c = $('Meta: publicar comentario').first().json;\n  comentarioOk = Boolean(c && c.id);\n} catch (e) { /* rama sin comentario */ }\n\nlet contenido = sel.logContenido || '';\nconst sha = sel.logSha || '';\nif (!contenido.trim()) {\n  contenido = [\n    '# Log de publicaciones — PROMPTIO',\n    '',\n    'Registro automático del workflow de n8n (`workflow-publicacion.json`).',\n    'El workflow lee este archivo para no publicar dos veces el mismo post,',\n    'así que no borres filas salvo que quieras volver a publicar una pieza.',\n    '',\n    '| ID | Post | Publicado | Láminas | Media ID | Comentario |',\n    '|----|------|-----------|---------|----------|------------|',\n    ''\n  ].join('\\n');\n}\n\nconst fila = '| ' + [\n  post.id, post.titulo,\n  DateTime.now().setZone(cfg.zonaHoraria).toFormat('yyyy-MM-dd HH:mm'),\n  em.totalImagenes, mediaId,\n  comentarioOk ? 'sí' : 'NO'\n].join(' | ') + ' |';\n\nconst nuevo = contenido.trimEnd() + '\\n' + fila + '\\n';\nconst body = {\n  message: 'log: publicado ' + post.id + ' — ' + post.titulo + (comentarioOk ? '' : ' (sin comentario)'),\n  content: Buffer.from(nuevo, 'utf8').toString('base64'),\n  branch: cfg.branch\n};\nif (sha) body.sha = sha;\n\nreturn [{ json: { body, post, comentarioOk, mediaId, totalImagenes: em.totalImagenes } }];"
+      },
+      "id": "preparar-fila-de-log.md",
+      "name": "Preparar fila de log.md",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5700,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "method": "PUT",
+        "url": "=https://api.github.com/repos/{{ $('Configuracion').first().json.owner }}/{{ $('Configuracion').first().json.repo }}/contents/log.md",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "github-escribir-log.md",
+      "name": "GitHub: escribir log.md",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5920,
+        120
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "REEMPLAZAR_GITHUB",
+          "name": "GitHub PROMPTIO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Configuracion').first().json.telegramChatId }}",
+        "text": "=✅ *Publicado en @promptio_*\n\n*{{ $json.post.titulo }}* (`{{ $json.post.id }}`)\nLáminas: {{ $json.totalImagenes }}\nMedia ID: {{ $json.mediaId }}\nComentario funcional: {{ $json.comentarioOk ? 'añadido' : 'NO añadido' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-confirmacion",
+      "name": "Telegram: confirmacion",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        6140,
+        120
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REEMPLAZAR_TELEGRAM",
+          "name": "Telegram PROMPTIO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Configuracion').first().json.telegramChatId }}",
+        "text": "=⚠️ *No se puede publicar el post de hoy*\n\n*{{ $json.titulo }}* (`{{ $json.id }}`)\nFormato: {{ $json.formato }} · Programado: {{ $json.fecha }} {{ $json.hora }}\n\n*Falta:*\n{{ $json.faltantes.map(f => '• ' + f).join('\\n') }}\n\nEl flujo se detuvo antes de renderizar nada. No se publicó nada.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-faltan-datos-del-guion",
+      "name": "Telegram: faltan datos del guion",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1300,
+        560
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REEMPLAZAR_TELEGRAM",
+          "name": "Telegram PROMPTIO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Configuracion').first().json.telegramChatId }}",
+        "text": "=🛑 *Fallo en {{ $json.etapa }} — no se publicó nada*\n\n*{{ $('Verificar datos del guion').first().json.titulo }}* (`{{ $('Verificar datos del guion').first().json.id }}`)\n\n*Error exacto:*\n```\n{{ $json.detalle }}\n```\n\nEl pipeline se detuvo antes de enviar nada a Postiz.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-fallo-del-pipeline",
+      "name": "Telegram: fallo del pipeline",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1960,
+        560
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REEMPLAZAR_TELEGRAM",
+          "name": "Telegram PROMPTIO"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "fin-no-se-publica",
+      "name": "Fin: no se publica",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2400,
+        560
+      ],
+      "notes": "Parada única de todas las ramas de fallo. Nunca continúa hacia Postiz."
+    }
+  ],
+  "connections": {
+    "Trigger diario 09:00": {
+      "main": [
+        [
+          {
+            "node": "Configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuracion": {
+      "main": [
+        [
+          {
+            "node": "GitHub: leer calendario.md",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GitHub: leer log.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub: leer calendario.md": {
+      "main": [
+        [
+          {
+            "node": "Seleccionar post de hoy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub: leer log.md": {
+      "main": [
+        [
+          {
+            "node": "Seleccionar post de hoy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Seleccionar post de hoy": {
+      "main": [
+        [
+          {
+            "node": "GitHub: leer guion de la semana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub: leer guion de la semana": {
+      "main": [
+        [
+          {
+            "node": "Extraer datos del guion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer datos del guion": {
+      "main": [
+        [
+          {
+            "node": "Verificar datos del guion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar datos del guion": {
+      "main": [
+        [
+          {
+            "node": "Datos completos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos completos?": {
+      "main": [
+        [
+          {
+            "node": "Renderizador: generar carrusel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: faltan datos del guion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: faltan datos del guion": {
+      "main": [
+        [
+          {
+            "node": "Fin: no se publica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Renderizador: generar carrusel": {
+      "main": [
+        [
+          {
+            "node": "Evaluar render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluar render": {
+      "main": [
+        [
+          {
+            "node": "Estado render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estado render": {
+      "main": [
+        [
+          {
+            "node": "Expandir laminas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: fallo del pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: fallo del pipeline": {
+      "main": [
+        [
+          {
+            "node": "Fin: no se publica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expandir laminas": {
+      "main": [
+        [
+          {
+            "node": "Descargar lamina",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar lamina": {
+      "main": [
+        [
+          {
+            "node": "Postiz: subir lamina",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postiz: subir lamina": {
+      "main": [
+        [
+          {
+            "node": "Construir payload de Postiz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir payload de Postiz": {
+      "main": [
+        [
+          {
+            "node": "Postiz: publicar post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postiz: publicar post": {
+      "main": [
+        [
+          {
+            "node": "Esperar publicacion en Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar publicacion en Instagram": {
+      "main": [
+        [
+          {
+            "node": "Meta: leer medios recientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta: leer medios recientes": {
+      "main": [
+        [
+          {
+            "node": "Emparejar post publicado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Emparejar post publicado": {
+      "main": [
+        [
+          {
+            "node": "Comentario localizable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comentario localizable?": {
+      "main": [
+        [
+          {
+            "node": "Meta: publicar comentario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: publicado sin comentario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta: publicar comentario": {
+      "main": [
+        [
+          {
+            "node": "Preparar fila de log.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: publicado sin comentario": {
+      "main": [
+        [
+          {
+            "node": "Preparar fila de log.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar fila de log.md": {
+      "main": [
+        [
+          {
+            "node": "GitHub: escribir log.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub: escribir log.md": {
+      "main": [
+        [
+          {
+            "node": "Telegram: confirmacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [],
+  "versionId": "",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

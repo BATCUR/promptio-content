@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Gato PROMPTIO">
+  <g fill="none" stroke="#1C2B45" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- orejas -->
+    <path d="M67 62 L58 26 L92 48"/>
+    <path d="M133 62 L142 26 L108 48"/>
+    <!-- cabeza -->
+    <path d="M100 44 C130 44 145 64 145 84 C145 106 126 122 100 122 C74 122 55 106 55 84 C55 64 70 44 100 44 Z"/>
+    <!-- ojos -->
+    <path d="M84 82 L84 90"/>
+    <path d="M116 82 L116 90"/>
+    <!-- hocico -->
+    <path d="M100 98 L100 104"/>
+    <path d="M100 104 C95 110 89 108 87 104"/>
+    <path d="M100 104 C105 110 111 108 113 104"/>
+    <!-- bigotes -->
+    <path d="M62 92 L38 86"/>
+    <path d="M62 100 L38 102"/>
+    <path d="M138 92 L162 86"/>
+    <path d="M138 100 L162 102"/>
+    <!-- cuerpo sentado -->
+    <path d="M69 116 C60 138 58 162 62 178 L138 178 C142 162 140 138 131 116"/>
+    <!-- patas delanteras -->
+    <path d="M88 178 L88 162"/>
+    <path d="M112 178 L112 162"/>
+    <!-- cola -->
+    <path d="M138 176 C170 178 184 156 174 134"/>
+  </g>
+</svg>

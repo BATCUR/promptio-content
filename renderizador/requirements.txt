@@ -1,0 +1,6 @@
+# Renderizador de carruseles PROMPTIO
+#
+# Única dependencia: Playwright, que controla Chromium headless.
+# Las fuentes van vendorizadas en assets/fonts/ (Anton e Inter, ambas SIL
+# Open Font License), así que el render no necesita red en ningún momento.
+playwright>=1.40
