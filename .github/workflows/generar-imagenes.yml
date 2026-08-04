@@ -1,0 +1,76 @@
+name: Generar imágenes del carrusel
+
+on:
+  workflow_dispatch:
+    inputs:
+      id_post:
+        description: "Id del post en calendario.md (ej. s1p1)"
+        required: true
+        default: "s1p1"
+      semana:
+        description: "Número de semana del post (para ubicar la carpeta que genera el renderizador)"
+        required: true
+        default: "1"
+      carpeta_destino:
+        description: "Carpeta pública que espera Make, relativa a imagenes/ (ej. semana-1/post-1)"
+        required: true
+        default: "semana-1/post-1"
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r renderizador/requirements.txt
+
+      - name: Instalar Chromium para Playwright
+        run: python -m playwright install --with-deps chromium
+
+      - name: Renderizar carrusel
+        run: python3 renderizador/generar_carrusel.py "${{ inputs.id_post }}"
+
+      - name: Copiar a la ruta pública que espera Make (lamina-N.png)
+        run: |
+          set -euo pipefail
+          ORIGEN="imagenes/semana-${{ inputs.semana }}/${{ inputs.id_post }}"
+          DESTINO="imagenes/${{ inputs.carpeta_destino }}"
+
+          if [ ! -d "$ORIGEN" ]; then
+            echo "ERROR: el renderizador no generó $ORIGEN — revisa id_post/semana." >&2
+            exit 1
+          fi
+
+          mkdir -p "$DESTINO"
+          i=1
+          for f in "$ORIGEN"/${{ inputs.id_post }}-*.png; do
+            cp "$f" "$DESTINO/lamina-$i.png"
+            i=$((i + 1))
+          done
+
+          if [ "$i" -eq 1 ]; then
+            echo "ERROR: no se copió ninguna lámina — el patrón de nombres no coincidió." >&2
+            exit 1
+          fi
+
+      - name: Commit y push de las imágenes generadas
+        run: |
+          git config user.name "promptio-bot"
+          git config user.email "promptiocontacto@gmail.com"
+          git add imagenes/
+          if git diff --cached --quiet; then
+            echo "Sin cambios que commitear."
+          else
+            git commit -m "Render automático: ${{ inputs.id_post }} -> ${{ inputs.carpeta_destino }}"
+            git push
+          fi
