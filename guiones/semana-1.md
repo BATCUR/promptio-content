@@ -128,144 +128,96 @@ idea, no de convertir.
 
 ## Post 2 — "El error #1" · carrusel · s1p2
 
-Estado: listo
+**Estado:** listo
 
-Título (autofill):
-
+**Título (autofill):**
 EL ERROR #1
 
-Cita (autofill):
-
+**Cita (autofill):**
 Le describiste el formato. Nunca le dijiste para qué era.
 
-Desarrollo (autofill):
-
+**Desarrollo (autofill):**
 Le pides a una IA que "haga un resumen de tres líneas". Te lo da. Perfecto en
-
 forma, inútil en la práctica: no sabía si era para un jefe, para redes o
-
 para ti mismo dentro de un mes. El error más común no es pedir poco: es
-
 describir el formato y omitir el objetivo.
 
-Slides:
+**Slides:**
 
-Slide 1 — Portada
-
+*Slide 1 — Portada*
 > # EL ERROR #1
 
-Slide 2 — La escena
-
+*Slide 2 — La escena*
 > "Hazme un resumen de tres líneas."
-
 >
-
 > Te lo da. Tres líneas, bien escritas.
-
 >
-
 > Y aun así no sirve.
 
-Slide 3 — El giro
-
+*Slide 3 — El giro*
 > No fallo el formato.
-
 >
-
 > Fallaste el objetivo: nunca dijiste para qué era ese resumen.
-
 >
-
 > La IA no puede optimizar una meta que no le diste.
 
-Slide 4 — La conexión con IA
-
+*Slide 4 — La conexión con IA*
 > "Tres líneas" es una restricción de forma.
-
 >
-
 > "Para que mi jefe decida en 10 segundos si aprobar el gasto" es un
-
 > objetivo.
-
 >
-
 > Con la primera, adivina. Con la segunda, apunta.
 
-Slide 5 — La regla de fondo
-
+*Slide 5 — La regla de fondo*
 > Antes de decir cómo lo quieres, di para qué es.
-
 >
-
 > El formato se ajusta después. El objetivo es lo que dirige todo lo
-
 > demás.
 
-Slide 6 — Cierre
-
+*Slide 6 — Cierre*
 > Lámina fija de marca. La añade el renderizador, no se escribe aquí.
 
-Caption:
-
+**Caption:**
 Le pediste un resumen de tres líneas. Te lo dio. Perfecto en forma,
-
 inútil en la práctica.
 
 El problema no fue la extensión. Fue que nunca dijiste para qué era ese
-
 resumen.
 
 Este es el error #1 al instruir una IA: describir el formato y saltarte
-
 el objetivo. "Hazlo corto" es una restricción. "Corto porque mi jefe
-
 decide en 10 segundos si aprobar el gasto" es un objetivo — y son dos
-
 prompts completamente distintos aunque suenen parecidos.
 
 ❌ "Resume esto en tres líneas" → optimiza para caber en tres líneas,
-
 nada más.
 
 ✅ "Resume esto para que alguien sin contexto previo decida en 10
-
 segundos si aprobar el gasto" → optimiza para la decisión, y el largo
-
 sale solo.
 
 El formato es la parte fácil. El objetivo es la que casi nadie escribe,
-
 y es la que realmente dirige el resultado.
 
 📌 Guarda este post — la próxima pieza de la semana ataca el consejo
-
 contrario: por qué "sé más específico" tampoco es suficiente.
 
 #Prompts #InteligenciaArtificial #Productividad #IA
 
-Comentario funcional:
-
+**Comentario funcional:**
 Prueba esto con el próximo prompt que escribas: antes de describir el
-
 formato (largo, tono, estructura), escribe una frase que empiece con
-
 "Esto es para que ___ pueda ___". Si no puedes completarla, todavía no
-
 tienes objetivo — tienes solo forma.
 
-CTA:
-
+**CTA:**
 Guardar el post. Sin enlace externo todavía — misma regla que el Post 1.
 
-Especificaciones visuales:
-
+**Especificaciones visuales:**
 Mismas que el Post 1: 6 slides, 1080×1350, tipografía condensada en
-
 mayúsculas, navy #1C2B45 sobre crema #F4EEDD, acentos dorado #D9A441 y
-
 teal #3E8C86. Gato y línea dorada en posición fija — no se ajustan por
-
 post. Cierre fijo lo añade el renderizador.
 
 ---
