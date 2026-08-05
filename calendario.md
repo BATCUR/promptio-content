@@ -9,9 +9,10 @@ Cada post lleva un identificador y su fecha/hora de publicación:
 - **Título** · *formato* · `id` · `AAAA-MM-DD HH:MM`
 ```
 
-Ese formato lo lee el workflow de n8n (`workflow-publicacion.json`) para
-saber qué toca publicar cada día, así que **la estructura de esas líneas
-no se puede romper**: cambia los valores, no los backticks ni los `·`.
+Ese formato lo lee el proceso de automatización (Make.com + GitHub
+Actions) para saber qué toca publicar cada día, así que **la estructura
+de esas líneas no se puede romper**: cambia los valores, no los
+backticks ni los `·`.
 El `id` (`s1p1` = semana 1, post 1; `s1r1` = semana 1, reel 1) es la
 clave que conecta las tres piezas de un post:
 
@@ -21,8 +22,12 @@ clave que conecta las tres piezas de un post:
 | Visual | `imagenes/semana-1/s1p1.png` (o `s1p1-01.png`, `s1p1-02.png`… en carrusel) |
 | Registro | fila `s1p1` en `log.md` |
 
-Las horas están en la zona horaria configurada en el workflow
-(`Europe/Madrid` por defecto).
+Las horas están en hora de Chile continental (`America/Santiago`).
+Mercado objetivo: Chile y Sudamérica — decisión tomada el 4 de agosto
+de 2026 tras el análisis de viralidad. 18:30 y 20:00 hora Chile caen
+dentro de la ventana de mayor consumo relajado post-trabajo (18:00-
+21:00h) para Instagram en Chile, así que los horarios ya definidos no
+se tocan, solo se corrige la zona horaria que los interpreta.
 
 ---
 
@@ -41,7 +46,9 @@ Las horas están en la zona horaria configurada en el workflow
   Ataca el consejo vacío que todo el mundo repite y define qué significa
   especificidad real: qué información concreta falta, no "más palabras".
 
-- **Reel — Vaga vs. clara** · *reel* · `s1r1` · `2026-08-08 20:00`
+- **Reel — Vaga vs. clara** · *carrusel* · `s1r1` · `2026-08-08 20:00`
+  (Formato ajustado de video a carrusel de imágenes — decisión del 4 de
+  agosto de 2026: sin capacidad de video en el renderizador por ahora.)
   Instrucción vaga vs. instrucción clara: mismo objetivo, resultado
   distinto. Demostración visual rápida del problema de la semana.
 
@@ -64,7 +71,8 @@ Las horas están en la zona horaria configurada en el workflow
   Mostrar un ejemplo vale más que explicar con palabras. Cierra el
   framework con la pieza más subestimada.
 
-- **Reel — Las 5 partes en 30 segundos** · *reel* · `s2r1` · `2026-08-16 20:00`
+- **Reel — Las 5 partes en 30 segundos** · *carrusel* · `s2r1` · `2026-08-16 20:00`
+  (Formato ajustado a carrusel de imágenes — ver nota en s1r1.)
   Versión reel del mismo contenido, condensada para alcance.
 
 ---
@@ -82,7 +90,8 @@ Las horas están en la zona horaria configurada en el workflow
   Una instrucción bien estructurada con memoria. Se conecta explícitamente
   con el framework: un skill no es magia, es el framework guardado.
 
-- **Reel — Mismo prompt, 2 plataformas** · *reel* · `s3r1` · `2026-08-23 20:00`
+- **Reel — Mismo prompt, 2 plataformas** · *carrusel* · `s3r1` · `2026-08-23 20:00`
+  (Formato ajustado a carrusel de imágenes — ver nota en s1r1.)
   Con y sin framework, resultado comparado lado a lado.
 
 ---
@@ -100,6 +109,7 @@ Las horas están en la zona horaria configurada en el workflow
 - **Post 3 — "Llevamos un mes documentando esto"** · *post corto* · `s4p3` · `2026-08-28 18:30`
   Guiño de que viene algo más grande, sin revelar el libro todavía.
 
-- **Post final — Anuncio del libro** · *reel* · `s4r1` · `2026-08-30 20:00`
+- **Post final — Anuncio del libro** · *carrusel* · `s4r1` · `2026-08-30 20:00`
+  (Formato ajustado a carrusel de imágenes — ver nota en s1r1.)
   Anuncio de *PROMPTIO — El arte de instruir a una máquina (y a ti mismo)*
   con el rebranding visual planeado.
