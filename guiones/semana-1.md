@@ -203,7 +203,10 @@ y es la que realmente dirige el resultado.
 📌 Guarda este post — la próxima pieza de la semana ataca el consejo
 contrario: por qué "sé más específico" tampoco es suficiente.
 
-#Prompts #InteligenciaArtificial #Productividad #IA
+Envíaselo a alguien que le está pidiendo demasiado a la IA y muy poco
+al prompt.
+
+#IngenieríaDePrompts #PromptEngineering #ComoInstruirIA #PROMPTIO
 
 **Comentario funcional:**
 Prueba esto con el próximo prompt que escribas: antes de describir el
