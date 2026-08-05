@@ -1,12 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" width="360" height="360" role="img" aria-label="Logo PROMPTIO">
-  <!-- Aro exterior -->
-  <circle cx="180" cy="180" r="164" fill="none" stroke="#1C2B45" stroke-width="10"/>
-  <circle cx="180" cy="180" r="146" fill="none" stroke="#D9A441" stroke-width="4"/>
-  <!-- Wordmark: PR navy, O teal, MPT navy, I dorado, O teal -->
+  <!-- Un solo círculo navy, sin aro decorativo extra -->
+  <circle cx="180" cy="180" r="164" fill="none" stroke="#1F3B4D" stroke-width="10"/>
+  <!-- Wordmark: PR navy, O verde, MPT navy, I dorado, O verde -->
   <text x="180" y="180" text-anchor="middle" dominant-baseline="central"
         font-family="Anton" font-size="62" letter-spacing="2">
-    <tspan fill="#1C2B45">PR</tspan><tspan fill="#3E8C86">O</tspan><tspan fill="#1C2B45">MPT</tspan><tspan fill="#D9A441">I</tspan><tspan fill="#3E8C86">O</tspan>
+    <tspan fill="#1F3B4D">PR</tspan><tspan fill="#3C8C6A">O</tspan><tspan fill="#1F3B4D">MPT</tspan><tspan fill="#D9A441">I</tspan><tspan fill="#3C8C6A">O</tspan>
   </text>
-  <!-- Línea de acento bajo el wordmark -->
-  <rect x="150" y="226" width="60" height="8" rx="4" fill="#D9A441"/>
 </svg>
