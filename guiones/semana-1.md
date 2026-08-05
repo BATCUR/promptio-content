@@ -116,9 +116,9 @@ Guardar el post. Sin enlace externo todavía: esta semana es de instalar la
 idea, no de convertir.
 
 **Especificaciones visuales:**
-- 6 slides, formato 1080 × 1350 px.
+- 6 slides, formato 1080 ×1350 px.
 - Tipografía condensada, mayúsculas, en azul marino `#1C2B45` sobre fondo
-  crema `#F4EEDD` (paleta de la landing).
+  crema `#F4EED` (paleta de la landing).
 - Acentos en dorado `#D9A441` y verde azulado `#3E8C86`.
 - Gato y línea dorada en portada: posición fija en `renderizador/marca.py`,
   no se reposicionan por post.
@@ -138,8 +138,8 @@ Le describiste el formato. Nunca le dijiste para qué era.
 
 **Desarrollo (autofill):**
 Le pides a una IA que "haga un resumen de tres líneas". Te lo da. Perfecto en
-forma, inútil en la práctica: no sabía si era para un jefe, para redes o
-para ti mismo dentro de un mes. El error más común no es pedir poco: es
+forma, inúfíl en la práctica: no sabía si era para un jefe, para redes o
+para ti mismo dentro de un mes. El error más comúan no es pedir poco: es
 describir el formato y omitir el objetivo.
 
 **Slides:**
@@ -227,44 +227,119 @@ post. Cierre fijo lo añade el renderizador.
 
 ## Post 3 — Por qué "sé más específico" no es un consejo útil · carrusel corto · s1p3
 
-**Estado:** pendiente
+**Estado:** listo
 
 **Título (autofill):**
+"SÉ MÁS ESPECÍFICO"
 
 **Cita (autofill):**
+El consejo más repetido y menos útil que existe.
 
 **Desarrollo (autofill):**
+"Sé más específico" no te dice qué falta. Especificidad real es nombrar
+la pieza concreta que falta: el objetivo, la audiencia, el formato o la
+restricción — no escribir más palabras alrededor de lo mismo.
 
 **Slides:**
 
 **Caption:**
+"Sé más específico" es el consejo que todo el mundo da y nadie explica.
+
+Porque no te dice qué agregar. Solo te dice que lo que escribiste no
+alcanza — y te deja adivinando qué falta.
+
+La especificidad real no es longitud. Es nombrar exactamente cuál de
+estas cuatro cosas falta en tu prompt:
+
+1. El objetivo — ¿para qué es esto?
+2. La audiencia — ¿quién lo va a leer o usar?
+3. El formato — ¿cómo tiene que verse el resultado?
+4. La restricción — ¿qué tiene que evitar?
+
+❌ "Sé más específico" → no dice cuál de las cuatro falta.
+
+✅ "Te falta la audiencia: dime quién lo va a leer" → apunta a una sola
+pieza, concreta y accionable.
+
+La próxima vez que un prompt no funcione, no le agregues palabras.
+Revisa cuál de las cuatro piezas nunca escribiste.
+
+Envíaselo a quien siempre te dice "sé más específico" sin decirte en
+qué.
+
+#IngenieríaDePrompts #PromptEngineering #ComoInstruirIA #PROMPTIO
 
 **Comentario funcional:**
+Toma el último prompt que no te funcionó y revísalo contra las cuatro
+piezas (objetivo, audiencia, formato, restricción). La que no puedas
+nombrar en una frase es la que faltaba.
 
 **CTA:**
+Guardar el post. Cierra la semana del "problema base" — la próxima
+semana empieza el framework de 5 partes.
 
 **Especificaciones visuales:**
+Mismas que el Post 1 y Post 2: 1080×1350, tipografía condensada en
+mayúsculas, navy #1F3B4D sobre crema #F4EEDD, acentos dorado #D9A441 y
+verde #3C8C6A. Gato y línea dorada en posición fija. Cierre fijo lo
+añade el renderizador.
 
 ---
 
-## Reel — Vaga vs. clara · reel · s1r1
+## Reel — Vaga vs. clara · carrusel · s1r1
 
-**Estado:** pendiente
+(Formato ajustado de reel a carrusel de imágenes — decisión del 4 de
+agosto de 2026, ver nota en calendario.md.)
+
+**Estado:** listo
 
 **Título (autofill):**
+VAGA VS. CLARA
 
 **Cita (autofill):**
+Mismo objetivo. Instrucción distinta. Resultado distinto.
 
 **Desarrollo (autofill):**
+"Ayúdame con esto" y "revisa este párrafo y dime si el argumento central
+queda claro en la primera línea" persiguen lo mismo. Pero solo una le
+da a la IA algo con qué trabajar. La otra solo le da trabajo.
 
-**Guion / voz en off:**
-
-**Notas de grabación y texto en pantalla:**
+**Slides:**
 
 **Caption:**
+Dos personas piden lo mismo. Una lo consigue. La otra no.
+
+Instrucción vaga: "Ayúdame con este texto."
+Instrucción clara: "Revisa este párrafo y dime si el argumento central
+queda claro en la primera línea."
+
+Mismo objetivo — que el texto mejore. Resultado completamente distinto,
+porque una le da a la IA algo concreto para evaluar y la otra la deja
+adivinando qué "ayudar" significa.
+
+Esta semana vimos tres formas del mismo problema: la puerta que se cerró
+sin el gato adentro, el resumen sin objetivo, el consejo de "sé más
+específico" que no dice qué falta.
+
+El hilo común: la claridad de una instrucción es responsabilidad de
+quien la da, no de quien la ejecuta.
+
+Envíaselo a alguien que sigue pidiendo "ayuda" en vez de pedir algo
+concreto.
+
+#IngenieríaDePrompts #PromptEngineering #ComoInstruirIA #PROMPTIO
 
 **Comentario funcional:**
+Toma tu próxima instrucción a una IA y complétala así: "Ayúdame a ___
+revisando/haciendo/comparando ___ para que ___". Si te cuesta llenar
+los tres espacios, todavía es una instrucción vaga.
 
 **CTA:**
+Guardar el post. Cierre visual de la semana — resume las tres piezas
+anteriores en un solo contraste.
 
 **Especificaciones visuales:**
+Mismas que el resto de la semana: 1080×1350, tipografía condensada en
+mayúsculas, navy #1F3B4D sobre crema #F4EEDD, acentos dorado #D9A441 y
+verde #3C8C6A. Gato y línea dorada en posición fija. Cierre fijo lo
+añade el renderizador.
